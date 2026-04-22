@@ -105,6 +105,38 @@ class ReportFormatter:
                                 cell.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')
                     
                     row_idx += 1
+            
+            filters = group.get('filters', [])
+            if filters:
+                for filter_item in filters:
+                    compare_module = filter_item.get('compare_module', '')
+                    content = filter_item.get('content', '')
+                    sql_content = filter_item.get('sql_content', '')
+                    is_consistent = filter_item.get('is_consistent', '是')
+                    remark = filter_item.get('remark', '')
+                    
+                    row_data = [
+                        group_id,
+                        source_tables,
+                        compare_module,
+                        content,
+                        sql_content,
+                        is_consistent,
+                        remark
+                    ]
+                    
+                    for col_idx, value in enumerate(row_data, 1):
+                        cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                        cell.alignment = cell_alignment
+                        cell.border = thin_border
+                        
+                        if col_idx == 6:
+                            if value == '否':
+                                cell.fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
+                            else:
+                                cell.fill = PatternFill(start_color='C6EFCE', end_color='C6EFCE', fill_type='solid')
+                    
+                    row_idx += 1
         
         column_widths = [12, 20, 12, 40, 50, 10, 30]
         for col_idx, width in enumerate(column_widths, 1):

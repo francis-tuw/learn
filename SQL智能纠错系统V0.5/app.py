@@ -2,6 +2,7 @@ from flask import Flask, send_from_directory, render_template, jsonify, request,
 from flask_cors import CORS
 import os
 import json
+import uuid
 from urllib.parse import quote
 from sql_correction_engine import SQLEngine
 from services.history_service import HistoryService
@@ -1113,7 +1114,7 @@ def start_data_flow():
     try:
         manager = get_data_flow_manager()
         
-        task_id, result = manager.start_data_flow(
+        result = manager.start_data_flow(
             mapping_file_content=mapping_file.read(),
             mapping_filename=mapping_file.filename,
             sql_file_content=sql_file.read(),
@@ -1123,12 +1124,11 @@ def start_data_flow():
         return jsonify({
             'success': True,
             'data': {
-                'task_id': task_id,
-                'status': result['status'],
-                'message': result['message']
+                'task_id': result['data']['task_id'],
+                'status': result['data']['status'],
+                'message': result['data']['message']
             }
         })
-        
     except Exception as e:
         print(f'[DataFlow] 启动失败: {e}')
         import traceback

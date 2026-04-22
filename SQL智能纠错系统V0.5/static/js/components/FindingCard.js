@@ -85,6 +85,20 @@ class FindingCard {
     return highlighted;
   }
 
+  renderPositionInfo() {
+    const positionInfo = this.finding.position_info;
+    if (!positionInfo || Object.keys(positionInfo).length === 0) return '';
+
+    const { line, column } = positionInfo;
+    if (!line || !column) return '';
+
+    return `
+      <div class="finding-position-info" style="margin-top:4px;font-size:12px;color:#1976d2;">
+        <span style="font-weight:500;">精确位置:</span> 第 ${line} 行，第 ${column} 列
+      </div>
+    `;
+  }
+
   render() {
     const card = document.createElement('div');
     const statusClass = this.finding.status || 'inconsistent';
@@ -126,6 +140,7 @@ class FindingCard {
         <div class="finding-main-info">
           <div class="finding-issue">${DataTransformers.escapeHtml(this.finding.issue || '未描述问题')}</div>
           <div class="finding-location">${this.highlightLineNumber(this.finding.location || '')}</div>
+          ${this.renderPositionInfo()}
         </div>
         <svg class="finding-expand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6,9 12,15 18,9"/>
@@ -215,6 +230,26 @@ class FindingCard {
     let html = '';
 
     html += this.renderAgentResultsSection();
+    
+    // 显示位置信息
+    const positionInfo = f.position_info;
+    if (positionInfo && Object.keys(positionInfo).length > 0) {
+      const { line, column, start_index, end_index } = positionInfo;
+      html += `
+        <div class="finding-detail-section">
+          <div class="finding-detail-title">📍 位置信息</div>
+          <div style="background:#e3f2fd;border-radius:6px;padding:12px;">
+            <div style="margin-bottom:4px;"><strong>行号:</strong> ${line}</div>
+            <div style="margin-bottom:4px;"><strong>列号:</strong> ${column}</div>
+            ${start_index !== undefined ? `<div style="margin-bottom:4px;"><strong>起始位置:</strong> ${start_index}</div>` : ''}
+            ${end_index !== undefined ? `<div><strong>结束位置:</strong> ${end_index}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // 显示代码片段
+    html += this.renderCodeSnippet();
 
     if (f.mapping_ref && Object.keys(f.mapping_ref).length > 0) {
       /* IT-Mapping参考区块：显示source/target/logic/sheet等映射信息，支持动态扩展字段以表格形式渲染 */
@@ -403,6 +438,69 @@ class FindingCard {
       console.warn('SQL highlighting failed:', e);
     }
     return DataTransformers.escapeHtml(sql);
+  }
+
+  renderCodeSnippet() {
+    const f = this.finding;
+    if (!f.original_sql) return '';
+
+    const positionInfo = f.position_info;
+    const sql = f.original_sql;
+    const lines = sql.split('\n');
+    let html = '';
+
+    if (positionInfo && positionInfo.line) {
+      const lineNum = positionInfo.line;
+      const startLine = Math.max(1, lineNum - 2);
+      const endLine = Math.min(lines.length, lineNum + 2);
+
+      html += `
+        <div class="finding-detail-section">
+          <div class="finding-detail-title">🔍 代码片段</div>
+          <div class="finding-code-snippet" style="background:#f5f5f5;border-radius:6px;padding:12px;overflow-x:auto;">
+            <table style="border-collapse:collapse;width:100%;">
+              <tbody>
+      `;
+
+      for (let i = startLine - 1; i < endLine; i++) {
+        const line = lines[i];
+        const currentLineNum = i + 1;
+        const isTargetLine = currentLineNum === lineNum;
+        const lineClass = isTargetLine ? 'target-line' : '';
+        const highlightedLine = this.highlightSql(line);
+
+        html += `
+              <tr class="${lineClass}" style="${isTargetLine ? 'background:#ffebee;' : ''}">
+                <td style="padding:2px 8px;text-align:right;border-right:1px solid #e0e0e0;font-size:12px;color:#9e9e9e;font-family:monospace;">${currentLineNum}</td>
+                <td style="padding:2px 8px;font-family:monospace;font-size:13px;">
+                  ${highlightedLine}
+                  ${isTargetLine && positionInfo.column ? this.renderPositionMarker(positionInfo.column, line) : ''}
+                </td>
+              </tr>
+        `;
+      }
+
+      html += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    return html;
+  }
+
+  renderPositionMarker(column, line) {
+    if (!column) return '';
+
+    const spaces = ' '.repeat(column - 1);
+    return `
+      <div style="margin-top:2px;">
+        <span style="color:#d32f2f;font-weight:bold;">${spaces}↑</span>
+        <span style="color:#d32f2f;font-size:11px;margin-left:4px;">第 ${column} 列</span>
+      </div>
+    `;
   }
 
   getElement() {

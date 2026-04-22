@@ -19,6 +19,7 @@ from extract_datamap_to_md import (
     extract_data_map_sheet,
     load_excel
 )
+from sql_group_parser import FieldLocator, FieldPosition
 
 
 class MappingParser:
@@ -1144,7 +1145,28 @@ class FieldCheckAgent:
         data_source_text = self._format_data_source_info(data_source_info)
         
         if sql_snippet is None:
-            sql_snippet = self._locate_field_in_sql(field_info, sql_content)
+            sql_snippet, position_info = self._locate_field_in_sql(field_info, sql_content)
+        else:
+            # 如果提供了sql_snippet，尝试定位位置信息
+            locator = FieldLocator(sql_content)
+            target_field = field_info.get('target_field', '')
+            source_field = field_info.get('source_field', '')
+            field_position = None
+            
+            if target_field and target_field != 'nan':
+                field_position = locator.get_position(target_field, "INSERT")
+            
+            if not field_position and source_field and source_field != 'nan':
+                field_position = locator.get_position(source_field)
+            
+            position_info = {}
+            if field_position:
+                position_info = {
+                    'line': field_position.line,
+                    'column': field_position.column,
+                    'start_index': field_position.start_index,
+                    'end_index': field_position.end_index
+                }
 
         if sql_structure and sql_structure.get('field_mapping'):
             field_name = field_info.get('target_field', '')
@@ -1161,6 +1183,7 @@ class FieldCheckAgent:
                     'suggestion': '请确认该字段是否需要在SQL中实现，或检查Mapping定义是否正确',
                     'mapping_ref': {'target': field_name, 'logic': field_info.get('transformation_logic', '')},
                     'field_info': field_info,
+                    'position_info': position_info,
                     'confidence': 0.8,
                     'agent_id': self.agent_id
                 }
@@ -1257,7 +1280,7 @@ class FieldCheckAgent:
             print(f'[FieldCheckAgent-{self.agent_id}] 分析完成, 耗时: {elapsed_time:.2f}秒, 响应长度: {len(full_response)} 字符')
 
             if full_response:
-                return self._parse_response(full_response, field_info)
+                return self._parse_response(full_response, field_info, position_info)
             else:
                 return {
                     'success': False,
@@ -1267,6 +1290,7 @@ class FieldCheckAgent:
                     'suggestion': '请检查AI服务状态或重试',
                     'mapping_ref': self._build_mapping_ref(field_info),
                     'field_info': field_info,
+                    'position_info': position_info,
                     'confidence': 0.0
                 }
 
@@ -1279,6 +1303,7 @@ class FieldCheckAgent:
                 'suggestion': '建议增加超时时间或检查AI服务状态',
                 'mapping_ref': self._build_mapping_ref(field_info),
                 'field_info': field_info,
+                'position_info': position_info,
                 'confidence': 0.0
             }
         except requests.exceptions.ConnectionError:
@@ -1290,6 +1315,7 @@ class FieldCheckAgent:
                 'suggestion': '启动Ollama服务: ollama serve',
                 'mapping_ref': self._build_mapping_ref(field_info),
                 'field_info': field_info,
+                'position_info': position_info,
                 'confidence': 0.0
             }
         except Exception as e:
@@ -1301,6 +1327,7 @@ class FieldCheckAgent:
                 'suggestion': '请检查输入参数或联系技术支持',
                 'mapping_ref': self._build_mapping_ref(field_info),
                 'field_info': field_info,
+                'position_info': position_info,
                 'confidence': 0.0
             }
 
@@ -1353,31 +1380,51 @@ class FieldCheckAgent:
             sql_content (str): 完整SQL代码
 
         Returns:
-            str: 相关SQL片段（最多10行）
+            tuple: (str, dict) - (相关SQL片段, 位置信息字典)
         """
         if not sql_content:
-            return "无法定位：SQL内容为空"
+            return "无法定位：SQL内容为空", {}
 
         target_field = field_info.get('target_field', '')
         source_field = field_info.get('source_field', '')
 
+        # 使用FieldLocator进行精确定位
+        locator = FieldLocator(sql_content)
+        field_position = None
+
+        # 尝试定位目标字段
+        if target_field and target_field != 'nan':
+            field_position = locator.get_position(target_field, "INSERT")
+        
+        # 如果目标字段未找到，尝试定位源字段
+        if not field_position and source_field and source_field != 'nan':
+            field_position = locator.get_position(source_field)
+
         lines = sql_content.split('\n')
         found_line_nums = set()
 
-        search_terms = [target_field, source_field]
-        search_terms = [t for t in search_terms if t and t != 'nan']
+        if field_position:
+            # 使用精确位置信息
+            line_num = field_position.line
+            found_line_nums.add(line_num - 1)  # 转换为0-based索引
+            for j in range(max(0, line_num - 3), min(len(lines), line_num + 2)):
+                found_line_nums.add(j)
+        else:
+            # 回退到传统搜索方法
+            search_terms = [target_field, source_field]
+            search_terms = [t for t in search_terms if t and t != 'nan']
 
-        for i, line in enumerate(lines):
-            line_upper = line.upper()
-            for term in search_terms:
-                if term and term.upper() in line_upper:
-                    found_line_nums.add(i)
-                    for j in range(max(0, i - 2), min(len(lines), i + 3)):
-                        found_line_nums.add(j)
-                    break
+            for i, line in enumerate(lines):
+                line_upper = line.upper()
+                for term in search_terms:
+                    if term and term.upper() in line_upper:
+                        found_line_nums.add(i)
+                        for j in range(max(0, i - 2), min(len(lines), i + 3)):
+                            found_line_nums.add(j)
+                        break
 
         if not found_line_nums:
-            return f"未在SQL中找到字段 '{target_field}' 的相关代码"
+            return f"未在SQL中找到字段 '{target_field}' 的相关代码", {}
 
         sorted_nums = sorted(found_line_nums)
         start = max(0, sorted_nums[0] - 1)
@@ -1386,14 +1433,29 @@ class FieldCheckAgent:
         relevant_lines = lines[start:end]
         snippet = '\n'.join(relevant_lines)
         
-        return f"相关SQL片段（第{start+1}-{end}行）：\n{snippet}"
+        # 构建位置信息字典
+        position_info = {}
+        if field_position:
+            position_info = {
+                'line': field_position.line,
+                'column': field_position.column,
+                'start_index': field_position.start_index,
+                'end_index': field_position.end_index
+            }
+            return f"相关SQL片段（第{field_position.line}行，第{field_position.column}列）：\n{snippet}", position_info
+        else:
+            position_info = {
+                'lines': f"{start+1}-{end}"
+            }
+            return f"相关SQL片段（第{start+1}-{end}行）：\n{snippet}", position_info
 
-    def _parse_response(self, response_text, field_info):
+    def _parse_response(self, response_text, field_info, position_info=None):
         """解析AI响应
 
         Args:
             response_text (str): AI返回的原始文本
             field_info (dict): 字段映射信息字典
+            position_info (dict): 字段位置信息字典（可选）
 
         Returns:
             dict: 解析后的结果字典
@@ -1428,6 +1490,26 @@ class FieldCheckAgent:
             elif source_field and source_field != 'nan':
                 source = source_field
             
+            # 如果没有提供位置信息，尝试获取字段位置信息
+            if position_info is None:
+                position_info = {}
+                if 'sql_content' in field_info:
+                    locator = FieldLocator(field_info['sql_content'])
+                    target_field = field_info.get('target_field', '')
+                    if target_field and target_field != 'nan':
+                        field_position = locator.get_position(target_field, "INSERT")
+                    
+                    if not field_position and source and source != 'nan':
+                        field_position = locator.get_position(source)
+                    
+                    if field_position:
+                        position_info = {
+                            'line': field_position.line,
+                            'column': field_position.column,
+                            'start_index': field_position.start_index,
+                            'end_index': field_position.end_index
+                        }
+            
             return {
                 'success': True,
                 'status': status,
@@ -1441,6 +1523,7 @@ class FieldCheckAgent:
                     'sheet': field_info.get('sheet', '')
                 },
                 'field_info': field_info,
+                'position_info': position_info,
                 'confidence': confidence,
                 'raw_response': raw_response
             }
