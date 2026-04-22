@@ -1,0 +1,112 @@
+2026-04-21 16:24:10 - INFO - 开始对比，总记录数: 54
+2026-04-21 16:24:10 - WARNING - 记录 MP1_1: 不一致 - {'sql_expression': 'uuid() AS UUID'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_1: 不一致 - {'sql_expression': 'uuid() AS UUID'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_1: 不一致 - {'sql_expression': 'uuid() AS UUID'}
+2026-04-21 16:24:10 - DEBUG - 记录 MP1_2: 一致 - {'sql_expression': 'CURRENT_TIMESTAMP() AS LOAD_TIME'}
+2026-04-21 16:24:10 - DEBUG - 记录 MP2_2: 一致 - {'sql_expression': 'CURRENT_TIMESTAMP() AS LOAD_TIME'}
+2026-04-21 16:24:10 - DEBUG - 记录 MP3_2: 一致 - {'sql_expression': 'CURRENT_TIMESTAMP() AS LOAD_TIME'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_3: 不一致 - {'sql_expression': 'V_SHORT_DATE AS DATA_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_3: 不一致 - {'sql_expression': 'V_SHORT_DATE AS DATA_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_3: 不一致 - {'sql_expression': 'V_SHORT_DATE AS DATA_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_4: 不一致 - {'sql_expression': 'T.CONTACT_TYPE AS ORG_NO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_4: 不一致 - {'sql_expression': 'T1.BRANCH AS ORG_NO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_4: 不一致 - {'sql_expression': 'T1.BRANCH AS ORG_NO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_5: 不一致 - {'sql_expression': 'T.CLIENT_NO AS CUST_NO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_5: 不一致 - {'sql_expression': 'T.CLIENT_NO AS CUST_NO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_5: 不一致 - {'sql_expression': 'T.CLIENT_NO AS CUST_NO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_6: 不一致 - {'sql_expression': 'T.CONTACT_TEL AS TEL'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_6: 不一致 - {'sql_expression': 'NULL AS TEL'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_6: 不一致 - {'sql_expression': 'NULL AS TEL'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_7: 不一致 - {'sql_expression': 'T.MOBILE_PHONE AS MOBILE_PHONE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_7: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_7: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_8: 不一致 - {'sql_expression': 'T.MOBILE_PHONE2 AS MOBILE_PHONE2'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_8: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE2'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_8: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE2'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_9: 不一致 - {'sql_expression': 'T.COUNTRY AS COUNTRY_AND_DIST_CODE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_9: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddrCtry, T3.MainBizAddrCtry) AS COUNTRY_AND_DIST_CODE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_9: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrCtry, T3.OthrAddrCtry) AS COUNTRY_AND_DIST_CODE'}
+2026-04-21 16:24:10 - DEBUG - 记录 MP1_10: 一致 - {'sql_expression': "'01' AS ADDR_TYPE"}
+2026-04-21 16:24:10 - DEBUG - 记录 MP2_10: 一致 - {'sql_expression': "'02' AS ADDR_TYPE"}
+2026-04-21 16:24:10 - DEBUG - 记录 MP3_10: 一致 - {'sql_expression': "'99' AS ADDR_TYPE"}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_11: 不一致 - {'sql_expression': 'T.CITY_DIST AS ADMIN_DIVI'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_11: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddrAreaOrCounty, T2.MainBizAddrCity, T2.MainBizAddrPrvn, T3.MainBizAddrAreaOrCounty, T3.MainBizAddrCity, T3.MainBizAddrPrvn) AS ADMIN_DIVI'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_11: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrAreaOrCounty, T2.OthrAddrCity, T2.OthrAddrPrvn, T3.OthrAddrAreaOrCounty, T3.OthrAddrCity, T3.OthrAddrPrvn) AS ADMIN_DIVI'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_12: 不一致 - {'sql_expression': 'T.POSTAL_CODE AS ZIP'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_12: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddrPostcode, T3.MainBizAddrPostcode) AS ZIP'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_12: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrPostcode, T3.OthrAddrPostcode) AS ZIP'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_13: 不一致 - {'sql_expression': 'T.ADDRESS AS DETAIL_ADDR'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_13: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddr, T3.MainBizAddr) AS DETAIL_ADDR'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_13: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddr, T3.OthrAddr) AS DETAIL_ADDR'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_14: 不一致 - {'sql_expression': 'T1.CREATE_DATE AS SETUP_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_14: 不一致 - {'sql_expression': 'COALESCE(T2.DtOfIncorporation, T3.DtOfIncorporation) AS SETUP_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_14: 不一致 - {'sql_expression': 'COALESCE(T2.DtOfIncorporation, T3.DtOfIncorporation) AS SETUP_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_15: 不一致 - {'sql_expression': 'T.LAST_CHANGE_DATE AS LAST_UPDATE_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_15: 不一致 - {'sql_expression': 'NULL AS LAST_UPDATE_DATE'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_15: 不一致 - {'sql_expression': 'NULL AS LAST_UPDATE_DATE'}
+2026-04-21 16:24:10 - INFO - 记录 None_16: 警告 - {'sql_expression': '未在SQL中找到对应字段'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_16: 不一致 - {'sql_expression': 'NULL AS REMARK_INFO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_16: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrTypeDescr, T3.OthrAddrTypeDescr) AS REMARK_INFO'}
+2026-04-21 16:24:10 - WARNING - 记录 MP1_17: 不一致 - {'sql_expression': 'NULL AS DATA_DEPT'}
+2026-04-21 16:24:10 - WARNING - 记录 MP2_17: 不一致 - {'sql_expression': 'NULL AS DATA_DEPT'}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_17: 不一致 - {'sql_expression': 'NULL AS DATA_DEPT'}
+2026-04-21 16:24:10 - DEBUG - 记录 MP1_18: 一致 - {'sql_expression': "'MP1' AS DATA_SRC"}
+2026-04-21 16:24:10 - DEBUG - 记录 MP2_18: 一致 - {'sql_expression': "'MP2' AS DATA_SRC"}
+2026-04-21 16:24:10 - WARNING - 记录 MP3_18: 不一致 - {'sql_expression': "'MP3' AS DATA_SRC"}
+2026-04-21 16:24:10 - INFO - 对比完成: 总计=54, 一致=8, 不一致=45, 警告=1, 错误=0, 跳过=0, 耗时=0.20秒
+2026-04-21 16:25:39 - INFO - 开始对比，总记录数: 54
+2026-04-21 16:25:39 - WARNING - 记录 MP1_1: 不一致 - {'sql_expression': 'uuid() AS UUID'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_1: 不一致 - {'sql_expression': 'uuid() AS UUID'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_1: 不一致 - {'sql_expression': 'uuid() AS UUID'}
+2026-04-21 16:25:39 - DEBUG - 记录 MP1_2: 一致 - {'sql_expression': 'CURRENT_TIMESTAMP() AS LOAD_TIME'}
+2026-04-21 16:25:39 - DEBUG - 记录 MP2_2: 一致 - {'sql_expression': 'CURRENT_TIMESTAMP() AS LOAD_TIME'}
+2026-04-21 16:25:39 - DEBUG - 记录 MP3_2: 一致 - {'sql_expression': 'CURRENT_TIMESTAMP() AS LOAD_TIME'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_3: 不一致 - {'sql_expression': 'V_SHORT_DATE AS DATA_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_3: 不一致 - {'sql_expression': 'V_SHORT_DATE AS DATA_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_3: 不一致 - {'sql_expression': 'V_SHORT_DATE AS DATA_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_4: 不一致 - {'sql_expression': 'T.CONTACT_TYPE AS ORG_NO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_4: 不一致 - {'sql_expression': 'T1.BRANCH AS ORG_NO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_4: 不一致 - {'sql_expression': 'T1.BRANCH AS ORG_NO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_5: 不一致 - {'sql_expression': 'T.CLIENT_NO AS CUST_NO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_5: 不一致 - {'sql_expression': 'T.CLIENT_NO AS CUST_NO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_5: 不一致 - {'sql_expression': 'T.CLIENT_NO AS CUST_NO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_6: 不一致 - {'sql_expression': 'T.CONTACT_TEL AS TEL'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_6: 不一致 - {'sql_expression': 'NULL AS TEL'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_6: 不一致 - {'sql_expression': 'NULL AS TEL'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_7: 不一致 - {'sql_expression': 'T.MOBILE_PHONE AS MOBILE_PHONE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_7: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_7: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_8: 不一致 - {'sql_expression': 'T.MOBILE_PHONE2 AS MOBILE_PHONE2'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_8: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE2'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_8: 不一致 - {'sql_expression': 'NULL AS MOBILE_PHONE2'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_9: 不一致 - {'sql_expression': 'T.COUNTRY AS COUNTRY_AND_DIST_CODE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_9: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddrCtry, T3.MainBizAddrCtry) AS COUNTRY_AND_DIST_CODE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_9: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrCtry, T3.OthrAddrCtry) AS COUNTRY_AND_DIST_CODE'}
+2026-04-21 16:25:39 - DEBUG - 记录 MP1_10: 一致 - {'sql_expression': "'01' AS ADDR_TYPE"}
+2026-04-21 16:25:39 - DEBUG - 记录 MP2_10: 一致 - {'sql_expression': "'02' AS ADDR_TYPE"}
+2026-04-21 16:25:39 - DEBUG - 记录 MP3_10: 一致 - {'sql_expression': "'99' AS ADDR_TYPE"}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_11: 不一致 - {'sql_expression': 'T.CITY_DIST AS ADMIN_DIVI'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_11: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddrAreaOrCounty, T2.MainBizAddrCity, T2.MainBizAddrPrvn, T3.MainBizAddrAreaOrCounty, T3.MainBizAddrCity, T3.MainBizAddrPrvn) AS ADMIN_DIVI'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_11: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrAreaOrCounty, T2.OthrAddrCity, T2.OthrAddrPrvn, T3.OthrAddrAreaOrCounty, T3.OthrAddrCity, T3.OthrAddrPrvn) AS ADMIN_DIVI'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_12: 不一致 - {'sql_expression': 'T.POSTAL_CODE AS ZIP'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_12: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddrPostcode, T3.MainBizAddrPostcode) AS ZIP'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_12: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrPostcode, T3.OthrAddrPostcode) AS ZIP'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_13: 不一致 - {'sql_expression': 'T.ADDRESS AS DETAIL_ADDR'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_13: 不一致 - {'sql_expression': 'COALESCE(T2.MainBizAddr, T3.MainBizAddr) AS DETAIL_ADDR'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_13: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddr, T3.OthrAddr) AS DETAIL_ADDR'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_14: 不一致 - {'sql_expression': 'T1.CREATE_DATE AS SETUP_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_14: 不一致 - {'sql_expression': 'COALESCE(T2.DtOfIncorporation, T3.DtOfIncorporation) AS SETUP_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_14: 不一致 - {'sql_expression': 'COALESCE(T2.DtOfIncorporation, T3.DtOfIncorporation) AS SETUP_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_15: 不一致 - {'sql_expression': 'T.LAST_CHANGE_DATE AS LAST_UPDATE_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_15: 不一致 - {'sql_expression': 'NULL AS LAST_UPDATE_DATE'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_15: 不一致 - {'sql_expression': 'NULL AS LAST_UPDATE_DATE'}
+2026-04-21 16:25:39 - INFO - 记录 None_16: 警告 - {'sql_expression': '未在SQL中找到对应字段'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_16: 不一致 - {'sql_expression': 'NULL AS REMARK_INFO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_16: 不一致 - {'sql_expression': 'COALESCE(T2.OthrAddrTypeDescr, T3.OthrAddrTypeDescr) AS REMARK_INFO'}
+2026-04-21 16:25:39 - WARNING - 记录 MP1_17: 不一致 - {'sql_expression': 'NULL AS DATA_DEPT'}
+2026-04-21 16:25:39 - WARNING - 记录 MP2_17: 不一致 - {'sql_expression': 'NULL AS DATA_DEPT'}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_17: 不一致 - {'sql_expression': 'NULL AS DATA_DEPT'}
+2026-04-21 16:25:39 - DEBUG - 记录 MP1_18: 一致 - {'sql_expression': "'MP1' AS DATA_SRC"}
+2026-04-21 16:25:39 - DEBUG - 记录 MP2_18: 一致 - {'sql_expression': "'MP2' AS DATA_SRC"}
+2026-04-21 16:25:39 - WARNING - 记录 MP3_18: 不一致 - {'sql_expression': "'MP3' AS DATA_SRC"}
+2026-04-21 16:25:39 - INFO - 对比完成: 总计=54, 一致=8, 不一致=45, 警告=1, 错误=0, 跳过=0, 耗时=0.20秒

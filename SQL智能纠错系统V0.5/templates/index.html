@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>SQL智能纠错系统</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/animations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/vs2015.min.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <header class="navbar" id="navbar">
+            <div class="navbar-left">
+                <div class="logo">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="6" fill="#1890ff"/>
+                        <path d="M8 12h16M8 16h12M8 20h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="system-title">SQL智能纠错系统</h1>
+            </div>
+            <div class="navbar-right">
+                <div class="status-indicator" id="ollamaStatus">
+                    <span class="status-dot status-offline"></span>
+                    <span class="status-text">Ollama未连接</span>
+                </div>
+                <button class="btn btn-outline btn-sm" id="historyBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                    历史记录
+                </button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="tab-container">
+                <nav class="tab-nav" id="tabNav">
+                    <button class="tab-btn active" data-tab="single">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                        单次纠错
+                    </button>
+                    <button class="tab-btn" data-tab="batch">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                        批量处理
+                    </button>
+                    <button class="tab-btn" data-tab="history">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                        历史记录
+                    </button>
+                </nav>
+
+                <div class="tab-content">
+                    <section class="tab-pane active" id="singleTab">
+                        <div class="upload-section">
+                            <div class="upload-grid">
+                                <div class="upload-card">
+                                    <div class="upload-zone" id="mappingUploadZone">
+                                        <div class="upload-zone-default">
+                                            <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                                <polyline points="17,8 12,3 7,8"/>
+                                                <line x1="12" y1="3" x2="12" y2="15"/>
+                                            </svg>
+                                            <p class="upload-title">IT-Mapping文件</p>
+                                            <p class="upload-hint">拖拽或点击上传 .xlsx 文件</p>
+                                            <p class="upload-limit">最大支持 50MB</p>
+                                        </div>
+                                        <input type="file" id="mappingFileInput" accept=".xlsx" hidden>
+                                    </div>
+                                    <div class="upload-preview" id="mappingPreview" style="display:none;">
+                                        <div class="preview-header">
+                                            <span class="preview-icon success">✓</span>
+                                            <span class="preview-filename" id="mappingFilename"></span>
+                                            <button class="btn btn-text btn-sm preview-remove" id="mappingRemoveBtn">移除</button>
+                                        </div>
+                                        <div class="preview-stats" id="mappingStats"></div>
+                                    </div>
+                                    <div class="upload-loading" id="mappingLoading" style="display:none;">
+                                        <div class="loading-spinner"></div>
+                                        <span>正在解析...</span>
+                                    </div>
+                                </div>
+
+                                <div class="upload-card">
+                                    <div class="upload-zone" id="sqlUploadZone">
+                                        <div class="upload-zone-default">
+                                            <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                                <polyline points="17,8 12,3 7,8"/>
+                                                <line x1="12" y1="3" x2="12" y2="15"/>
+                                            </svg>
+                                            <p class="upload-title">SQL文件</p>
+                                            <p class="upload-hint">拖拽或点击上传 .sql / .txt 文件</p>
+                                            <p class="upload-limit">本地读取，不上传服务器</p>
+                                        </div>
+                                        <input type="file" id="sqlFileInput" accept=".sql,.txt" hidden>
+                                    </div>
+                                    <div class="upload-preview" id="sqlPreview" style="display:none;">
+                                        <div class="preview-header">
+                                            <span class="preview-icon success">✓</span>
+                                            <span class="preview-filename" id="sqlFilename"></span>
+                                            <button class="btn btn-text btn-sm preview-remove" id="sqlRemoveBtn">移除</button>
+                                        </div>
+                                        <div class="preview-details" id="sqlDetails"></div>
+                                        <div class="sql-preview-code" id="sqlCodePreview"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="business-input-section">
+                                <button class="business-toggle" id="businessToggle">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="6,9 12,15 18,9"/>
+                                    </svg>
+                                    业务需求补充（可选）
+                                </button>
+                                <div class="business-input-wrapper" id="businessInputWrapper" style="display:none;">
+                                    <textarea 
+                                        class="business-textarea" 
+                                        id="businessInput"
+                                        placeholder="请输入额外的业务需求说明、特殊加工规则等...&#10;&#10;例如：某些字段需要特殊的数据清洗逻辑..."
+                                        maxlength="2000"
+                                    ></textarea>
+                                    <div class="textarea-footer">
+                                        <span class="char-count"><span id="charCount">0</span>/2000</span>
+                                        <span class="textarea-hint">按 Enter 换行，Ctrl+Enter 提交</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="action-section">
+                                <button class="btn btn-primary btn-lg start-review-btn" id="startReviewBtn" disabled>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="5,3 19,12 5,21"/>
+                                    </svg>
+                                    开始纠错
+                                </button>
+                            </div>
+
+                            <div class="progress-section" id="progressSection" style="display:none;">
+                                <div class="progress-header">
+                                    <h3>纠错进度</h3>
+                                    <span class="progress-percentage" id="progressPercentage">0%</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" id="progressBar" style="width:0%"></div>
+                                </div>
+                                <div class="step-indicator" id="stepIndicator">
+                                    <div class="step active" data-step="parsing">
+                                        <span class="step-icon">📄</span>
+                                        <span class="step-label">解析文件</span>
+                                    </div>
+                                    <div class="step" data-step="agents">
+                                        <span class="step-icon">🤖</span>
+                                        <span class="step-label">Agent审查</span>
+                                    </div>
+                                    <div class="step" data-step="done">
+                                        <span class="step-icon">✓</span>
+                                        <span class="step-label">完成</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="result-section" id="resultSection" style="display:none;">
+                                <div class="result-summary-card" id="resultSummary"></div>
+                                
+                                <div class="findings-toolbar">
+                                    <div class="filter-group">
+                                        <select class="form-select" id="typeFilter">
+                                            <option value="all">全部类型</option>
+                                            <option value="映射一致性">映射一致性</option>
+                                            <option value="JOIN逻辑">JOIN逻辑</option>
+                                            <option value="NULL处理">NULL处理</option>
+                                            <option value="聚合窗口">聚合窗口</option>
+                                            <option value="方言兼容">方言兼容</option>
+                                        </select>
+                                        <select class="form-select" id="statusFilter">
+                                            <option value="all">全部状态</option>
+                                            <option value="inconsistent">仅不一致</option>
+                                            <option value="consistent">仅一致</option>
+                                        </select>
+                                    </div>
+                                    <div class="search-box">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="11" cy="11" r="8"/>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                        </svg>
+                                        <input type="text" placeholder="搜索问题描述..." id="searchInput">
+                                    </div>
+                                </div>
+
+                                <div class="findings-list" id="findingsList"></div>
+
+                                <div class="export-toolbar" id="exportToolbar" style="display:none;">
+                                    <button class="btn btn-primary" id="downloadReportBtn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                            <polyline points="7,10 12,15 17,10"/>
+                                            <line x1="12" y1="15" x2="12" y2="3"/>
+                                        </svg>
+                                        下载纠错报告
+                                    </button>
+                                    <button class="btn btn-success" id="downloadSqlBtn">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                                            <polyline points="14,2 14,8 20,8"/>
+                                        </svg>
+                                        下载标注SQL (.sql)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="tab-pane" id="batchTab" style="display:none;">
+                        <div class="batch-upload-area">
+                            <div class="upload-zone batch-zone" id="batchUploadZone">
+                                <div class="upload-zone-default">
+                                    <svg class="upload-icon" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                        <polyline points="17,8 12,3 7,8"/>
+                                        <line x1="12" y1="3" x2="12" y2="15"/>
+                                    </svg>
+                                    <p class="upload-title">批量上传文件对</p>
+                                    <p class="upload-hint">拖拽多个文件夹或选择多组 IT-Mapping(.xlsx) + SQL(.sql) 文件</p>
+                                    <p class="upload-hint">系统将自动根据文件名进行配对</p>
+                                </div>
+                                <input type="file" id="batchFileInput" multiple hidden>
+                            </div>
+                            
+                            <div class="file-pairs-list" id="filePairsList" style="display:none;">
+                                <div class="pairs-header">
+                                    <h3>文件配对列表</h3>
+                                    <div class="pairs-actions">
+                                        <button class="btn btn-sm btn-outline" id="autoPairBtn">自动配对</button>
+                                        <button class="btn btn-sm btn-outline" id="clearPairsBtn">清空列表</button>
+                                    </div>
+                                </div>
+                                <div class="pairs-grid" id="pairsGrid"></div>
+                            </div>
+
+                            <div class="batch-action-section">
+                                <button class="btn btn-primary btn-lg" id="startBatchBtn" disabled>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                        <polygon points="5,3 19,12 5,21"/>
+                                    </svg>
+                                    开始批量纠错
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="batch-progress-panel" id="batchProgressPanel" style="display:none;">
+                            <div class="panel-header">
+                                <h3>批量执行进度</h3>
+                                <div class="panel-actions">
+                                    <button class="btn btn-warning btn-sm" id="pauseBatchBtn">暂停全部</button>
+                                    <button class="btn btn-danger btn-sm" id="cancelBatchBtn">取消剩余任务</button>
+                                </div>
+                            </div>
+                            
+                            <div class="batch-stats-cards">
+                                <div class="stat-card">
+                                    <span class="stat-value" id="totalPairs">0</span>
+                                    <span class="stat-label">总计</span>
+                                </div>
+                                <div class="stat-card stat-success">
+                                    <span class="stat-value" id="completedPairs">0</span>
+                                    <span class="stat-label">已完成</span>
+                                </div>
+                                <div class="stat-card stat-info">
+                                    <span class="stat-value" id="runningPairs">0</span>
+                                    <span class="stat-label">进行中</span>
+                                </div>
+                                <div class="stat-card stat-warning">
+                                    <span class="stat-value" id="waitingPairs">0</span>
+                                    <span class="stat-label">等待中</span>
+                                </div>
+                                <div class="stat-card stat-error">
+                                    <span class="stat-value" id="errorPairs">0</span>
+                                    <span class="stat-label">异常</span>
+                                </div>
+                            </div>
+
+                            <div class="overall-progress">
+                                <div class="progress-header">
+                                    <span>总进度</span>
+                                    <span class="progress-percentage" id="batchProgressPercent">0%</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar progress-bar-animated" id="batchProgressBar" style="width:0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="pair-status-list" id="pairStatusList"></div>
+
+                            <div class="batch-export-section">
+                                <button class="btn btn-success" id="batchExportBtn" disabled>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                        <polyline points="7,10 12,15 17,10"/>
+                                        <line x1="12" y1="15" x2="12" y2="3"/>
+                                    </svg>
+                                    导出全部报告
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="tab-pane" id="historyTab" style="display:none;">
+                        <div class="history-empty" id="historyEmpty">
+                            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                            <p>暂无历史记录</p>
+                            <p class="hint">完成纠错后，历史记录将显示在这里</p>
+                        </div>
+                        <div class="history-list" id="historyList" style="display:none;"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-left">
+                <span>版本 v1.0.0</span>
+            </div>
+            <div class="footer-center">
+                <span>SQL智能纠错系统 © 2026</span>
+            </div>
+            <div class="footer-right">
+                <span class="system-status" id="systemStatus">系统就绪</span>
+            </div>
+        </footer>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="modal-overlay" id="modalOverlay" style="display:none;"></div>
+    <div class="modal" id="modal" style="display:none;"></div>
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="loading-spinner large"></div>
+        <p>处理中...</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+    <script src="/static/js/utils/api.js?v=4"></script>
+    <script src="/static/js/utils/state.js?v=3"></script>
+    <script src="/static/js/utils/formatters.js?v=3"></script>
+    <script src="/static/js/components/Toast.js?v=3"></script>
+    <script src="/static/js/components/Modal.js?v=3"></script>
+    <script src="/static/js/components/UploadZone.js?v=3"></script>
+    <script src="/static/js/components/FindingCard.js?v=3"></script>
+    <script src="/static/js/components/ExcelDetailModal.js?v=1"></script>
+    <script src="/static/js/managers/MappingUploader.js?v=3"></script>
+    <script src="/static/js/managers/BatchProgress.js?v=3"></script>
+    <script src="/static/js/managers/ReviewFlow.js?v=3"></script>
+    <script src="/static/js/managers/HistoryManager.js?v=3"></script>
+    <script src="/static/js/app.js?v=3"></script>
+</body>
+</html>
