@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, render_template, jsonify, request, Response, current_app
+from flask import Flask, send_from_directory, render_template, jsonify, request, Response, current_app, send_file
 from flask_cors import CORS
 import os
 import json
@@ -8,6 +8,7 @@ from sql_correction_engine import SQLEngine
 from services.history_service import HistoryService
 from tools.sql_annotator import SQLAnnotator
 from tools.report_formatter import ReportFormatter
+from tools.excel_exporter import export_from_task_result
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
@@ -934,6 +935,22 @@ def export_report(task_id):
         return download_report(task_id)
     else:
         return download_report(task_id)
+
+@app.route('/api/export/excel/<task_id>', methods=['GET'])
+def export_correction_excel(task_id):
+    """导出Excel格式的检查结果"""
+    task_result = sql_engine.get_task_result(task_id)
+    if not task_result:
+        return jsonify({'error': '任务结果不存在'}), 404
+    
+    # 生成Excel文件
+    output_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'exports')
+    excel_path = export_from_task_result(task_id, task_result, output_dir)
+    
+    if excel_path and os.path.exists(excel_path):
+        return send_file(excel_path, as_attachment=True, download_name='SQL检查结果.xlsx')
+    else:
+        return jsonify({'error': '生成Excel文件失败'}), 500
 
 @app.route('/api/batch-download', methods=['GET'])
 def batch_download_history():

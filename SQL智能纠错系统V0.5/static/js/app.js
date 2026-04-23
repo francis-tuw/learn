@@ -270,6 +270,7 @@ class App {
   initExportButtons() {
     const downloadReportBtn = document.getElementById('downloadReportBtn');
     const downloadSqlBtn = document.getElementById('downloadSqlBtn');
+    const downloadExcelBtn = document.getElementById('downloadExcelBtn');
 
     if (downloadReportBtn) {
       downloadReportBtn.addEventListener('click', async () => {
@@ -301,6 +302,24 @@ class App {
           toast.info('正在生成标注SQL...');
           await api.downloadAnnotatedSql(taskId);
           toast.success('标注SQL下载成功');
+        } catch (error) {
+          toast.error(error.message || '下载失败');
+        }
+      });
+    }
+
+    if (downloadExcelBtn) {
+      downloadExcelBtn.addEventListener('click', async () => {
+        const taskId = appState.getState().singleTask.taskId;
+        if (!taskId) {
+          toast.warning('没有可下载的Excel结果');
+          return;
+        }
+
+        try {
+          toast.info('正在生成Excel结果...');
+          await api.downloadExcelReport(taskId);
+          toast.success('Excel结果下载成功');
         } catch (error) {
           toast.error(error.message || '下载失败');
         }

@@ -244,7 +244,23 @@ class FieldLocator:
         """在指定的INSERT块中定位字段"""
         # 首先检查insert_fields中的字段位置
         if field_name in insert_block.field_positions:
-            return insert_block.field_positions[field_name]
+            # 从新的字段位置结构中创建FieldPosition对象
+            pos_info = insert_block.field_positions[field_name]
+            # 计算字符索引
+            insert_line = pos_info.get('insert_line', insert_block.start_line)
+            insert_col = pos_info.get('insert_col', 1)
+            
+            # 计算字符索引
+            if insert_line <= len(self.line_starts):
+                start_index = self.line_starts[insert_line - 1] + insert_col - 1
+                end_index = start_index + len(field_name)
+                
+                return FieldPosition(
+                    line=insert_line,
+                    column=insert_col,
+                    start_index=start_index,
+                    end_index=end_index
+                )
         
         # 在INSERT块的原始SQL中查找
         block_start = insert_block.start_line - 1  # 转换为0-based索引
@@ -349,7 +365,7 @@ class InsertBlock:
     insert_fields: List[str] = field(default_factory=list)
     select_expressions: List[str] = field(default_factory=list)
     field_mapping: Dict[str, str] = field(default_factory=dict)
-    field_positions: Dict[str, FieldPosition] = field(default_factory=dict)
+    field_positions: Dict[str, Dict[str, int]] = field(default_factory=dict)  # 字段位置信息
     from_clause: str = ''
     join_clauses: List[Dict] = field(default_factory=list)
     where_clause: str = ''
@@ -521,12 +537,24 @@ class SQLGroupParser:
             block.target_table = target_table
             block.partition_clause = partition
             
-            insert_fields, field_positions = self._extract_insert_fields_with_positions(block_sql, start_line)
+            insert_fields, insert_positions = self._extract_insert_fields_with_positions(block_sql, start_line)
             block.insert_fields = insert_fields
-            block.field_positions = field_positions
             
-            select_exprs = self._extract_select_expressions(block_sql)
+            select_exprs, select_positions = self._extract_select_expressions_with_positions(block_sql, start_line)
             block.select_expressions = select_exprs
+            
+            # 构建字段位置信息
+            field_positions = {}
+            if insert_fields and select_exprs:
+                for i, field in enumerate(insert_fields):
+                    if i < len(select_exprs):
+                        field_positions[field] = {
+                            'insert_line': insert_positions[field].line if field in insert_positions else start_line,
+                            'insert_col': insert_positions[field].column if field in insert_positions else 1,
+                            'select_line': select_positions[i][0] if i < len(select_positions) else start_line,
+                            'select_col': select_positions[i][1] if i < len(select_positions) else 1
+                        }
+            block.field_positions = field_positions
             
             if insert_fields and select_exprs:
                 for i, field in enumerate(insert_fields):
@@ -637,6 +665,84 @@ class SQLGroupParser:
             return self._parse_select_values(select_str)
         return []
     
+    def _extract_select_expressions_with_positions(self, sql: str, start_line: int) -> Tuple[List[str], List[Tuple[int, int]]]:
+        select_pattern = r'SELECT\s+([\s\S]*?)\s+FROM\s+'
+        match = re.search(select_pattern, sql, re.IGNORECASE)
+        if match:
+            select_str = match.group(1)
+            expressions = self._parse_select_values(select_str)
+            
+            # 计算SELECT部分在整个SQL中的起始位置
+            select_start = match.start(1)
+            
+            # 解析每行的表达式
+            lines = select_str.split('\n')
+            current_line = start_line
+            char_offset = 0
+            
+            # 计算INSERT语句开始到SELECT部分的行数
+            select_lines = sql[:select_start].split('\n')
+            current_line += len(select_lines) - 1
+            
+            positions = []
+            
+            for line in lines:
+                # 清理注释
+                clean_line = re.sub(r'--.*$', '', line).strip()
+                if clean_line:
+                    # 分割行中的多个表达式，注意处理行尾的逗号
+                    clean_line = clean_line.rstrip(',')
+                    
+                    # 解析表达式，考虑括号深度
+                    line_expressions = []
+                    current_expr = ''
+                    paren_depth = 0
+                    case_depth = 0
+                    
+                    for char in clean_line:
+                        if char == '(':
+                            paren_depth += 1
+                            current_expr += char
+                        elif char == ')':
+                            paren_depth -= 1
+                            current_expr += char
+                        elif char == ',' and paren_depth == 0 and case_depth == 0:
+                            if current_expr.strip():
+                                line_expressions.append(current_expr.strip())
+                            current_expr = ''
+                        else:
+                            current_expr += char
+                            
+                            if current_expr.upper().endswith('CASE'):
+                                case_depth += 1
+                            elif case_depth > 0 and current_expr.upper().rstrip().endswith('END'):
+                                case_depth -= 1
+                    
+                    if current_expr.strip():
+                        line_expressions.append(current_expr.strip())
+                    
+                    # 计算每个表达式的位置
+                    line_start = select_start + char_offset
+                    current_pos = 0
+                    
+                    for expr in line_expressions:
+                        # 找到表达式在清理后行中的位置
+                        expr_in_clean_line = clean_line.find(expr, current_pos)
+                        if expr_in_clean_line >= 0:
+                            # 计算行号和列号
+                            expr_line = current_line
+                            expr_column = expr_in_clean_line + 1  # 列号从1开始
+                            positions.append((expr_line, expr_column))
+                            
+                            # 更新当前位置，避免重复匹配
+                            current_pos = expr_in_clean_line + len(expr)
+                
+                char_offset += len(line) + 1  # +1 for the newline
+                current_line += 1
+            
+            return expressions, positions
+        return [], []
+    
     def _parse_select_values(self, select_str: str) -> List[str]:
         values = []
         current = ''
@@ -735,7 +841,10 @@ class SQLGroupParser:
             print(f'INSERT字段: {block.insert_fields[:5]}...' if len(block.insert_fields) > 5 else f'INSERT字段: {block.insert_fields}')
             print(f'字段位置信息:')
             for field, pos in list(block.field_positions.items())[:5]:  # 只显示前5个字段的位置信息
-                print(f'  - {field}: 第{pos.line}行, 第{pos.column}列')
+                if isinstance(pos, dict):
+                    print(f'  - {field}: 插入位置 (行{pos.get("insert_line", "N/A")}, 列{pos.get("insert_col", "N/A")}), 选择位置 (行{pos.get("select_line", "N/A")}, 列{pos.get("select_col", "N/A")})')
+                else:
+                    print(f'  - {field}: 第{pos.line}行, 第{pos.column}列')
             if len(block.field_positions) > 5:
                 print(f'  ... 还有{len(block.field_positions) - 5}个字段')
             print(f'FROM: {block.from_clause}')
@@ -773,15 +882,7 @@ class SQLGroupParser:
                     'insert_fields': block.insert_fields,
                     'select_expressions': block.select_expressions,
                     'field_mapping': block.field_mapping,
-                    'field_positions': {
-                        field: {
-                            'line': pos.line,
-                            'column': pos.column,
-                            'start_index': pos.start_index,
-                            'end_index': pos.end_index
-                        }
-                        for field, pos in block.field_positions.items()
-                    },
+                    'field_positions': block.field_positions,
                     'from_clause': block.from_clause,
                     'join_clauses': block.join_clauses,
                     'where_clause': block.where_clause,

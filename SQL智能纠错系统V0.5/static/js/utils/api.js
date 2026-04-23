@@ -119,6 +119,13 @@ class ApiService {
     );
   }
 
+  downloadExcelReport(taskId) {
+    return this.downloadFile(
+      `/api/export/excel/${taskId}`,
+      `SQL检查结果_${taskId}.xlsx`
+    );
+  }
+
   exportMarkdown(taskId) {
     return this.downloadFile(
       `/api/download/report/${taskId}`,
